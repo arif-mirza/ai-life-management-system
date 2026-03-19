@@ -8,45 +8,39 @@ const NAV_GROUPS = [
   {
     title: 'Main',
     items: [
-      { path: '/', icon: '□', label: 'Dashboard' },
-      { path: '/daily-tasks', icon: '✓', label: 'Daily Tasks' },
-      { path: '/goals', icon: '🎯', label: 'Life Goals' },
-      { path: '/notes', icon: '📝', label: 'Notes' }
+      { path: '/', icon: '[]', label: 'Dashboard' },
+      { path: '/daily-tasks', icon: 'v', label: 'Daily Tasks' },
+      { path: '/goals', icon: 'GO', label: 'Life Goals' },
+      { path: '/notes', icon: 'NT', label: 'Notes' }
     ]
   },
   {
     title: 'Learning',
     items: [
-      { path: '/se-hub', icon: '💻', label: 'SE Hub' },
-      { path: '/vu-courses', icon: '🎓', label: 'Education' }
+      { path: '/se-hub', icon: 'SE', label: 'SE Hub' },
+      { path: '/vu-courses', icon: 'ED', label: 'Education' }
     ]
   },
   {
     title: 'Spiritual',
     items: [
-      { path: '/namaz-tracker', icon: '🕌', label: 'Namaz Tracker' }
-    ]
-  },
-  {
-    title: 'Business',
-    items: [
-      { path: '/tailor-business', icon: '🧵', label: 'Tailor Business' }
+      { path: '/namaz-tracker', icon: 'NM', label: 'Namaz Tracker' }
     ]
   },
   {
     title: 'Tools',
     items: [
-      { path: '/accounts', icon: '💰', label: 'Accounts' },
-      { path: '/passwords', icon: '🔒', label: 'Passwords' },
-      { path: '/records', icon: '📦', label: 'Records' },
-      { path: '/diary', icon: '📔', label: 'Diary' }
+      { path: '/accounts', icon: 'AC', label: 'Accounts' },
+      { path: '/passwords', icon: 'PW', label: 'Passwords' },
+      { path: '/records', icon: 'RC', label: 'Records' },
+      { path: '/diary', icon: 'DY', label: 'Diary' }
     ]
   },
   {
     title: 'Insights',
     items: [
-      { path: '/habits', icon: '🔁', label: 'Habits' },
-      { path: '/reports', icon: '📊', label: 'Reports' }
+      { path: '/habits', icon: 'HB', label: 'Habits' },
+      { path: '/reports', icon: 'RP', label: 'Reports' }
     ]
   }
 ]
@@ -98,7 +92,7 @@ export default function AppLayout() {
         <div style={{ padding: '24px 20px 16px', borderBottom: '1px solid var(--border-soft, #F0EDE6)' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
             <div className="app-mark" style={{ width: 40, height: 40, borderRadius: 12, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 19 }}>
-              ✦
+              *
             </div>
             <div>
               <div style={{ fontFamily: 'var(--font-serif)', fontSize: 17, fontWeight: 400, color: 'var(--text-primary)' }}>LifePortal</div>
@@ -120,7 +114,7 @@ export default function AppLayout() {
                   end={path === '/'}
                   className={({ isActive }) => `nav-link ${isActive ? 'active' : ''}`}
                 >
-                  <span style={{ fontSize: 16, width: 22, textAlign: 'center' }}>{icon}</span>
+                  <span style={{ fontSize: 12, width: 22, textAlign: 'center', fontWeight: 700, letterSpacing: '0.04em' }}>{icon}</span>
                   <span>{label}</span>
                 </NavLink>
               ))}
@@ -157,7 +151,7 @@ export default function AppLayout() {
             className="btn btn-ghost"
             style={{ width: '100%', marginTop: 6, justifyContent: 'flex-start', gap: 8, fontSize: 13, color: 'var(--text-muted)' }}
           >
-            <span>↩</span> Sign out
+            <span>{'<-'}</span> Sign out
           </button>
         </div>
       </aside>
@@ -166,9 +160,11 @@ export default function AppLayout() {
         style={{
           flex: 1,
           marginLeft: 260,
+          minWidth: 0,
           minHeight: '100vh',
           display: 'flex',
-          flexDirection: 'column'
+          flexDirection: 'column',
+          overflowX: 'hidden'
         }}
         className="main-content"
       >
@@ -187,21 +183,19 @@ export default function AppLayout() {
           className="mobile-header glass-topbar"
         >
           <button onClick={() => dispatch(toggleSidebar())} className="mobile-menu-btn" aria-label="Open navigation">
-            <span style={{ lineHeight: 1 }}>☰</span>
+            <span style={{ lineHeight: 1 }}>=</span>
           </button>
           <div className="mobile-brand">
-            <div className="mobile-brand-mark">✦</div>
+            <div className="mobile-brand-mark">*</div>
             <div className="mobile-brand-copy">
               <div className="mobile-brand-title">LifePortal</div>
               <div className="mobile-brand-subtitle">Personal dashboard</div>
             </div>
           </div>
-          <div className="mobile-avatar">
-            {initials}
-          </div>
+          <div className="mobile-avatar">{initials}</div>
         </header>
 
-        <main style={{ flex: 1, padding: '32px 32px' }} className="page-main">
+        <main style={{ flex: 1, minWidth: 0, overflowX: 'hidden', padding: '32px 32px' }} className="page-main">
           <div className="page-content">
             <Outlet />
           </div>

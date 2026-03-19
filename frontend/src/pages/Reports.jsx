@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
 import { fetchMonthlyReport, fetchYearlyReport } from '../store/dashboardSlice'
 import { PageHeader, LoadingSpinner, ProgressBar, Badge } from '../components/common'
@@ -13,8 +13,42 @@ ChartJS.register(CategoryScale, LinearScale, BarElement, LineElement, PointEleme
 const MONTHS_LABELS = ['January','February','March','April','May','June','July','August','September','October','November','December']
 const CURRENT_YEAR = new Date().getFullYear()
 const YEARS = [CURRENT_YEAR - 1, CURRENT_YEAR, CURRENT_YEAR + 1]
+const PRAYER_STORAGE_KEY = 'lifeportal.namaz.prayerLog'
 
 const CATEGORY_COLORS = { Career: '#5C6BC0', Health: '#1E8449', Finance: '#C77B2A', Learning: '#2D6A4F', 'Personal Growth': '#D68910', Other: '#888' }
+
+const getCompletedPrayerCount = (entries) => {
+  let completed = 0
+
+  entries.forEach(entry => {
+    ['fajr', 'zuhar', 'asar', 'magrib', 'isha'].forEach(prayer => {
+      if (entry[prayer] === 'Present' || entry[prayer] === 'Kaza') completed += 1
+    })
+  })
+
+  return completed
+}
+
+const getDaysInMonth = (year, month) => new Date(year, month, 0).getDate()
+const getDaysInYear = (year) => Math.round((new Date(year + 1, 0, 1) - new Date(year, 0, 1)) / 86400000)
+const getPrayerRate = (completed, total) => (total ? Math.round((completed / total) * 100) : 0)
+
+const getMonthlyPrayerRate = (entries, year, month) => {
+  const filteredEntries = entries.filter(entry => {
+    const date = new Date(entry.date)
+    return date.getFullYear() === year && date.getMonth() + 1 === month
+  })
+  const completed = getCompletedPrayerCount(filteredEntries)
+  const total = getDaysInMonth(year, month) * 5
+  return getPrayerRate(completed, total)
+}
+
+const getYearlyPrayerRate = (entries, year) => {
+  const filteredEntries = entries.filter(entry => new Date(entry.date).getFullYear() === year)
+  const completed = getCompletedPrayerCount(filteredEntries)
+  const total = getDaysInYear(year) * 5
+  return getPrayerRate(completed, total)
+}
 
 const chartOpts = {
   responsive: true, maintainAspectRatio: false,
@@ -40,6 +74,26 @@ export default function Reports() {
   const [month, setMonth] = useState(new Date().getMonth() + 1)
   const [year, setYear] = useState(CURRENT_YEAR)
   const [loading, setLoading] = useState(false)
+  const [prayerLog, setPrayerLog] = useState([])
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return
+    try {
+      const raw = localStorage.getItem(PRAYER_STORAGE_KEY)
+      const parsed = raw ? JSON.parse(raw) : []
+      setPrayerLog(Array.isArray(parsed) ? parsed : [])
+    } catch {
+      setPrayerLog([])
+    }
+  }, [])
+
+  const yearlyPrayerRate = useMemo(() => {
+    return getYearlyPrayerRate(prayerLog, year)
+  }, [prayerLog, year])
+
+  const monthlyPrayerRate = useMemo(() => {
+    return getMonthlyPrayerRate(prayerLog, year, month)
+  }, [prayerLog, year, month])
 
   const load = async () => {
     setLoading(true)
@@ -106,6 +160,7 @@ export default function Reports() {
                 <ScoreRing score={monthlyReport.productivityScore} label="Productivity Score" color="#2D6A4F" />
                 <ScoreRing score={monthlyReport.habitCompletionRate} label="Habit Completion" color="#5C6BC0" />
                 <ScoreRing score={monthlyReport.goalsTotal ? Math.round((monthlyReport.goalsCompleted / monthlyReport.goalsTotal) * 100) : 0} label="Goals Completed" color="#C77B2A" />
+                <ScoreRing score={monthlyPrayerRate} label="Prayer Rate" color="#1E8449" />
               </div>
             </div>
 
@@ -156,6 +211,7 @@ export default function Reports() {
                   { label: 'Habits Tracked', value: monthlyReport.habitsTracked, icon: '🔁' },
                   { label: 'Habit Rate', value: `${monthlyReport.habitCompletionRate}%`, icon: '📊' },
                   { label: 'Productivity', value: `${monthlyReport.productivityScore}%`, icon: '⚡' },
+                  { label: 'Prayer Rate', value: `${monthlyPrayerRate}%`, icon: '🕌' },
                 ].map(s => (
                   <div key={s.label} style={{ background: 'var(--surface-2)', borderRadius: 10, padding: '14px 16px' }}>
                     <div style={{ fontSize: 20 }}>{s.icon}</div>
@@ -180,6 +236,7 @@ export default function Reports() {
                 { label: 'In Progress', value: yearlyReport.goals?.inProgress, icon: '⏳', color: '#FDF3E7' },
                 { label: 'Avg Progress', value: `${yearlyReport.goals?.avgProgress}%`, icon: '📈', color: '#E8F5EE' },
                 { label: 'Habit Logs', value: yearlyReport.habits?.totalLogs, icon: '📋', color: '#FEF9E7' },
+                { label: 'Prayer Rate', value: `${yearlyPrayerRate}%`, icon: '🕌', color: '#E8F5EE' },
               ].map(s => (
                 <div key={s.label} className="card" style={{ padding: '18px 20px', background: s.color }}>
                   <div style={{ fontSize: 20 }}>{s.icon}</div>

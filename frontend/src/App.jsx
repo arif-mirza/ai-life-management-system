@@ -12,7 +12,6 @@ import Profile from './pages/Profile'
 import SEHub from './pages/SEHub'
 import VUCourses from './pages/VUCourses'
 import NamazTracker from './pages/NamazTracker'
-import TailorBusiness from './pages/TailorBusiness'
 import Passwords from './pages/Passwords'
 import Records from './pages/Records'
 import Diary from './pages/Diary'
@@ -61,7 +60,6 @@ export default function App() {
           <Route path="se-hub" element={<SEHub />} />
           <Route path="vu-courses" element={<VUCourses />} />
           <Route path="namaz-tracker" element={<NamazTracker />} />
-          <Route path="tailor-business" element={<TailorBusiness />} />
           <Route path="passwords" element={<Passwords />} />
           <Route path="accounts" element={<Accounts />} />
           <Route path="records" element={<Records />} />
