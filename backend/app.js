@@ -7,10 +7,14 @@ dotenv.config();
 
 const app = express();
 
-const configuredOrigins = (process.env.CLIENT_URL || 'http://localhost:5173')
-  .split(',')
-  .map(origin => origin.trim())
-  .filter(Boolean);
+const configuredOrigins = [
+  'http://localhost:5173',
+  'https://ai-life-management-system.vercel.app',
+  ...(process.env.CLIENT_URL || '')
+    .split(',')
+    .map(origin => origin.trim())
+    .filter(Boolean)
+];
 
 if (process.env.VERCEL_URL) {
   configuredOrigins.push(`https://${process.env.VERCEL_URL}`);
