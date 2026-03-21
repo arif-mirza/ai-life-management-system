@@ -1,6 +1,7 @@
-import { useEffect } from 'react'
+import { useCallback, useEffect, useMemo } from 'react'
 import { Outlet, NavLink, useLocation } from 'react-router-dom'
 import { useDispatch, useSelector } from 'react-redux'
+import { AnimatePresence, motion } from 'framer-motion'
 import { logout } from '../store/authSlice'
 import { toggleSidebar, setSidebarOpen } from '../store/uiSlice'
 
@@ -55,13 +56,28 @@ export default function AppLayout() {
     dispatch(setSidebarOpen(false))
   }, [dispatch, location.pathname])
 
-  const initials = user?.name?.split(' ').map(word => word[0]).join('').slice(0, 2).toUpperCase() || 'U'
+  const closeSidebar = useCallback(() => {
+    dispatch(setSidebarOpen(false))
+  }, [dispatch])
+
+  const handleToggleSidebar = useCallback(() => {
+    dispatch(toggleSidebar())
+  }, [dispatch])
+
+  const handleLogout = useCallback(() => {
+    dispatch(logout())
+  }, [dispatch])
+
+  const initials = useMemo(
+    () => user?.name?.split(' ').map(word => word[0]).join('').slice(0, 2).toUpperCase() || 'U',
+    [user?.name]
+  )
 
   return (
     <div className="app-shell" style={{ display: 'flex', minHeight: '100vh', background: 'var(--bg)' }}>
       {sidebarOpen && (
         <div
-          onClick={() => dispatch(setSidebarOpen(false))}
+          onClick={closeSidebar}
           style={{
             position: 'fixed',
             inset: 0,
@@ -147,7 +163,7 @@ export default function AppLayout() {
             </div>
           </NavLink>
           <button
-            onClick={() => dispatch(logout())}
+            onClick={handleLogout}
             className="btn btn-ghost"
             style={{ width: '100%', marginTop: 6, justifyContent: 'flex-start', gap: 8, fontSize: 13, color: 'var(--text-muted)' }}
           >
@@ -182,7 +198,7 @@ export default function AppLayout() {
           }}
           className="mobile-header glass-topbar"
         >
-          <button onClick={() => dispatch(toggleSidebar())} className="mobile-menu-btn" aria-label="Open navigation">
+          <button onClick={handleToggleSidebar} className="mobile-menu-btn" aria-label="Open navigation">
             <span style={{ lineHeight: 1 }}>=</span>
           </button>
           <div className="mobile-brand">
@@ -197,7 +213,18 @@ export default function AppLayout() {
 
         <main style={{ flex: 1, minWidth: 0, overflowX: 'hidden', padding: '32px 32px' }} className="page-main">
           <div className="page-content">
-            <Outlet />
+            <AnimatePresence mode="wait" initial={false}>
+              <motion.div
+                key={location.pathname}
+                className="route-motion-shell"
+                initial={{ opacity: 0, y: 18, filter: 'blur(6px)' }}
+                animate={{ opacity: 1, y: 0, filter: 'blur(0px)' }}
+                exit={{ opacity: 0, y: -10, filter: 'blur(4px)' }}
+                transition={{ duration: 0.28, ease: [0.22, 1, 0.36, 1] }}
+              >
+                <Outlet />
+              </motion.div>
+            </AnimatePresence>
           </div>
         </main>
       </div>

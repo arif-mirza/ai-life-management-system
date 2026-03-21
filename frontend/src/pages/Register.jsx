@@ -3,6 +3,7 @@ import { Link, useNavigate } from 'react-router-dom'
 import { useDispatch, useSelector } from 'react-redux'
 import { register, clearError } from '../store/authSlice'
 import toast from 'react-hot-toast'
+import { LoadingButton } from '../components/common'
 
 export default function Register() {
   const dispatch = useDispatch()
@@ -66,9 +67,9 @@ export default function Register() {
             {field('password', 'Password', 'password', '••••••••')}
             {field('confirm', 'Confirm Password', 'password', '••••••••')}
 
-            <button type="submit" className="btn btn-primary" style={{ width: '100%', padding: '12px 18px', fontSize: 15, marginTop: 8 }} disabled={loading}>
-              {loading ? <><span className="spinner" style={{ width: 16, height: 16 }} /> Creating account...</> : 'Create account'}
-            </button>
+            <LoadingButton type="submit" loading={loading} loadingLabel="Creating account..." className="btn btn-primary" style={{ width: '100%', padding: '12px 18px', fontSize: 15, marginTop: 8 }}>
+              Create account
+            </LoadingButton>
           </form>
 
           <div style={{ textAlign: 'center', marginTop: 24, color: 'var(--text-secondary)', fontSize: 13 }}>

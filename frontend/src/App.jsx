@@ -1,73 +1,81 @@
+import { Suspense, lazy, memo } from 'react'
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
 import { useSelector } from 'react-redux'
 import { Toaster } from 'react-hot-toast'
-import AppLayout from './layouts/AppLayout'
-import Dashboard from './pages/Dashboard'
-import DailyTasks from './pages/DailyTasks'
-import Goals from './pages/Goals'
-import Habits from './pages/Habits'
-import Notes from './pages/Notes'
-import Reports from './pages/Reports'
-import Profile from './pages/Profile'
-import SEHub from './pages/SEHub'
-import VUCourses from './pages/VUCourses'
-import NamazTracker from './pages/NamazTracker'
-import Passwords from './pages/Passwords'
-import Records from './pages/Records'
-import Diary from './pages/Diary'
-import Accounts from './pages/Accounts'
-import Login from './pages/Login'
-import Register from './pages/Register'
+import { PageSkeleton } from './components/common'
 
-function PrivateRoute({ children }) {
+const AppLayout = lazy(() => import('./layouts/AppLayout'))
+const Dashboard = lazy(() => import('./pages/Dashboard'))
+const DailyTasks = lazy(() => import('./pages/DailyTasks'))
+const Goals = lazy(() => import('./pages/Goals'))
+const Habits = lazy(() => import('./pages/Habits'))
+const Notes = lazy(() => import('./pages/Notes'))
+const Reports = lazy(() => import('./pages/Reports'))
+const Profile = lazy(() => import('./pages/Profile'))
+const SEHub = lazy(() => import('./pages/SEHub'))
+const VUCourses = lazy(() => import('./pages/VUCourses'))
+const NamazTracker = lazy(() => import('./pages/NamazTracker'))
+const Passwords = lazy(() => import('./pages/Passwords'))
+const Records = lazy(() => import('./pages/Records'))
+const Diary = lazy(() => import('./pages/Diary'))
+const Accounts = lazy(() => import('./pages/Accounts'))
+const Login = lazy(() => import('./pages/Login'))
+const Register = lazy(() => import('./pages/Register'))
+const ForgotPassword = lazy(() => import('./pages/ForgotPassword'))
+const ResetPassword = lazy(() => import('./pages/ResetPassword'))
+
+const toasterOptions = {
+  style: {
+    fontFamily: '"Plus Jakarta Sans", sans-serif',
+    fontSize: '14px',
+    background: '#fff',
+    color: '#1A1714',
+    border: '1px solid #E8E4DC',
+    boxShadow: '0 4px 24px rgba(0,0,0,0.09)',
+    borderRadius: '10px'
+  },
+  success: { iconTheme: { primary: '#2D6A4F', secondary: '#fff' } }
+}
+
+const PrivateRoute = memo(function PrivateRoute({ children }) {
   const { token } = useSelector(s => s.auth)
   return token ? children : <Navigate to="/login" replace />
-}
+})
 
-function PublicRoute({ children }) {
+const PublicRoute = memo(function PublicRoute({ children }) {
   const { token } = useSelector(s => s.auth)
   return !token ? children : <Navigate to="/" replace />
-}
+})
 
 export default function App() {
   return (
     <BrowserRouter>
-      <Toaster
-        position="top-right"
-        toastOptions={{
-          style: {
-            fontFamily: '"Plus Jakarta Sans", sans-serif',
-            fontSize: '14px',
-            background: '#fff',
-            color: '#1A1714',
-            border: '1px solid #E8E4DC',
-            boxShadow: '0 4px 24px rgba(0,0,0,0.09)',
-            borderRadius: '10px',
-          },
-          success: { iconTheme: { primary: '#2D6A4F', secondary: '#fff' } },
-        }}
-      />
-      <Routes>
-        <Route path="/login" element={<PublicRoute><Login /></PublicRoute>} />
-        <Route path="/register" element={<PublicRoute><Register /></PublicRoute>} />
-        <Route path="/" element={<PrivateRoute><AppLayout /></PrivateRoute>}>
-          <Route index element={<Dashboard />} />
-          <Route path="daily-tasks" element={<DailyTasks />} />
-          <Route path="goals" element={<Goals />} />
-          <Route path="habits" element={<Habits />} />
-          <Route path="notes" element={<Notes />} />
-          <Route path="reports" element={<Reports />} />
-          <Route path="se-hub" element={<SEHub />} />
-          <Route path="vu-courses" element={<VUCourses />} />
-          <Route path="namaz-tracker" element={<NamazTracker />} />
-          <Route path="passwords" element={<Passwords />} />
-          <Route path="accounts" element={<Accounts />} />
-          <Route path="records" element={<Records />} />
-          <Route path="diary" element={<Diary />} />
-          <Route path="profile" element={<Profile />} />
-        </Route>
-        <Route path="*" element={<Navigate to="/" replace />} />
-      </Routes>
+      <Toaster position="top-right" toastOptions={toasterOptions} />
+      <Suspense fallback={<PageSkeleton />}>
+        <Routes>
+          <Route path="/login" element={<PublicRoute><Login /></PublicRoute>} />
+          <Route path="/register" element={<PublicRoute><Register /></PublicRoute>} />
+          <Route path="/forgot-password" element={<PublicRoute><ForgotPassword /></PublicRoute>} />
+          <Route path="/reset-password/:token" element={<PublicRoute><ResetPassword /></PublicRoute>} />
+          <Route path="/" element={<PrivateRoute><AppLayout /></PrivateRoute>}>
+            <Route index element={<Dashboard />} />
+            <Route path="daily-tasks" element={<DailyTasks />} />
+            <Route path="goals" element={<Goals />} />
+            <Route path="habits" element={<Habits />} />
+            <Route path="notes" element={<Notes />} />
+            <Route path="reports" element={<Reports />} />
+            <Route path="se-hub" element={<SEHub />} />
+            <Route path="vu-courses" element={<VUCourses />} />
+            <Route path="namaz-tracker" element={<NamazTracker />} />
+            <Route path="passwords" element={<Passwords />} />
+            <Route path="accounts" element={<Accounts />} />
+            <Route path="records" element={<Records />} />
+            <Route path="diary" element={<Diary />} />
+            <Route path="profile" element={<Profile />} />
+          </Route>
+          <Route path="*" element={<Navigate to="/" replace />} />
+        </Routes>
+      </Suspense>
     </BrowserRouter>
   )
 }

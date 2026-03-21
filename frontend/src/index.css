@@ -37,6 +37,8 @@ body {
 }
 
 a { color: inherit; }
+img, picture, svg, canvas { max-width: 100%; display: block; }
+img { height: auto; }
 
 ::-webkit-scrollbar { width: 8px; height: 8px; }
 ::-webkit-scrollbar-track { background: transparent; }
@@ -59,6 +61,10 @@ a { color: inherit; }
 @keyframes floatGlow {
   0%, 100% { transform: translateY(0); opacity: 0.9; }
   50% { transform: translateY(-10px); opacity: 1; }
+}
+@keyframes shimmer {
+  0% { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
 }
 
 .animate-fade-in { animation: fadeIn 0.45s cubic-bezier(0.22, 1, 0.36, 1) forwards; }
@@ -187,6 +193,7 @@ a { color: inherit; }
   overflow-x: hidden;
 }
 .page-content > * { min-width: 0; }
+.route-motion-shell { min-width: 0; }
 
 .card {
   position: relative;
@@ -270,8 +277,10 @@ a { color: inherit; }
   border: none;
   outline: none;
   text-decoration: none;
+  will-change: transform;
 }
 .btn:hover { transform: translateY(-1px); }
+.btn:active { transform: translateY(0) scale(0.98); }
 .btn-primary {
   background: linear-gradient(135deg, var(--accent), #3a7b60);
   color: white;
@@ -662,6 +671,33 @@ a { color: inherit; }
   border-top-color: var(--accent);
   border-radius: 50%;
   animation: spin 0.7s linear infinite;
+}
+.skeleton-block {
+  background: linear-gradient(90deg, rgba(240, 234, 223, 0.95), rgba(255, 255, 255, 0.9), rgba(240, 234, 223, 0.95));
+  background-size: 200% 100%;
+  animation: shimmer 1.25s linear infinite;
+}
+.page-skeleton {
+  display: grid;
+  gap: 18px;
+}
+.page-skeleton-header {
+  display: grid;
+  gap: 12px;
+}
+.page-skeleton-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+  gap: 16px;
+}
+.page-skeleton-card,
+.page-skeleton-panel {
+  padding: 20px;
+}
+.page-skeleton-lines {
+  display: grid;
+  gap: 10px;
+  margin-top: 18px;
 }
 
 .desktop-only { display: block; }

@@ -31,6 +31,14 @@ const userSchema = new mongoose.Schema({
     currency: { type: String, default: 'USD' },
     timezone: { type: String, default: 'UTC' }
   },
+  resetPasswordToken: {
+    type: String,
+    default: null
+  },
+  resetPasswordExpire: {
+    type: Date,
+    default: null
+  },
   createdAt: {
     type: Date,
     default: Date.now

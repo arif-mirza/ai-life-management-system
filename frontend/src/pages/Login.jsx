@@ -3,6 +3,7 @@ import { Link, useNavigate } from 'react-router-dom'
 import { useDispatch, useSelector } from 'react-redux'
 import { login, clearError } from '../store/authSlice'
 import toast from 'react-hot-toast'
+import { LoadingButton } from '../components/common'
 
 export default function Login() {
   const dispatch = useDispatch()
@@ -62,11 +63,16 @@ export default function Login() {
                 onChange={e => setForm(p => ({ ...p, password: e.target.value }))}
                 required
               />
+              <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: 8 }}>
+                <Link to="/forgot-password" style={{ color: 'var(--accent)', fontWeight: 600, textDecoration: 'none', fontSize: 12 }}>
+                  Forgot password?
+                </Link>
+              </div>
             </div>
 
-            <button type="submit" className="btn btn-primary" style={{ width: '100%', padding: '12px 18px', fontSize: 15 }} disabled={loading}>
-              {loading ? <><span className="spinner" style={{ width: 16, height: 16 }} /> Signing in...</> : 'Sign in'}
-            </button>
+            <LoadingButton type="submit" loading={loading} loadingLabel="Signing in..." className="btn btn-primary" style={{ width: '100%', padding: '12px 18px', fontSize: 15 }}>
+              Sign in
+            </LoadingButton>
           </form>
 
           <div style={{ textAlign: 'center', marginTop: 24, color: 'var(--text-secondary)', fontSize: 13 }}>
