@@ -37,19 +37,11 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
 app.get('/', (req, res) => {
-  res.json({
-    success: true,
-    message: 'LifePortal API is live',
-    health: '/api/health'
-  });
+  res.json({ success: true, message: 'LifePortal API is live', health: '/api/health' });
 });
 
 app.get('/health', (req, res) => {
-  res.json({
-    success: true,
-    status: 'ok',
-    message: 'LifePortal API is running'
-  });
+  res.json({ success: true, status: 'ok', message: 'LifePortal API is running' });
 });
 
 app.use('/api', (req, res, next) => {
@@ -60,6 +52,7 @@ app.use('/api', (req, res, next) => {
   return next();
 });
 
+// Existing routes
 app.use('/api/auth', require('./routes/authRoutes'));
 app.use('/api/goals', require('./routes/goalRoutes'));
 app.use('/api/habits', require('./routes/habitRoutes'));
@@ -72,12 +65,12 @@ app.use('/api/passwords', require('./routes/passwordRoutes'));
 app.use('/api/accounts', require('./routes/accountRoutes'));
 app.use('/api/se-hub', require('./routes/seHubRoutes'));
 
+// New routes
+app.use('/api/daily-tasks', require('./routes/dailyTaskRoutes'));
+app.use('/api/namaz', require('./routes/namazRoutes'));
+
 app.get('/api/health', (req, res) => {
-  res.json({
-    success: true,
-    status: 'ok',
-    message: 'LifePortal API is running'
-  });
+  res.json({ success: true, status: 'ok', message: 'LifePortal API is running' });
 });
 
 app.use((err, req, res, next) => {

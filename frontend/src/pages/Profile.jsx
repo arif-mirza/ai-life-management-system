@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
 import { updateProfile, logout } from '../store/authSlice'
+import { setDarkMode } from '../store/uiSlice'
 import { PageHeader } from '../components/common'
 import toast from 'react-hot-toast'
 
@@ -75,10 +76,14 @@ export default function Profile() {
               <select
                 className="input-field"
                 value={form.preferences.theme}
-                onChange={e => setForm(p => ({ ...p, preferences: { ...p.preferences, theme: e.target.value } }))}
+                onChange={e => {
+                  const newTheme = e.target.value
+                  setForm(p => ({ ...p, preferences: { ...p.preferences, theme: newTheme } }))
+                  dispatch(setDarkMode(newTheme === 'dark'))
+                }}
               >
                 <option value="light">Light</option>
-                <option value="dark">Dark (coming soon)</option>
+                <option value="dark">Dark</option>
               </select>
             </div>
             <div>

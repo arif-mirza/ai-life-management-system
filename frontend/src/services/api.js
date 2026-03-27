@@ -42,3 +42,22 @@ api.interceptors.response.use(
 )
 
 export default api
+
+// ── Named helper methods ───────────────────────────────────────
+
+export const dailyTasksApi = {
+  getAll: (params) => api.get('/daily-tasks', { params }),
+  create: (data) => api.post('/daily-tasks', data),
+  update: (id, data) => api.put(`/daily-tasks/${id}`, data),
+  remove: (id) => api.delete(`/daily-tasks/${id}`),
+}
+
+export const namazApi = {
+  getLog: (params) => api.get('/namaz/log', { params }),
+  saveEntry: (data) => api.post('/namaz/log', data),
+  bulkImportLog: (entries) => api.post('/namaz/log/bulk', { entries }),
+  getStats: () => api.get('/namaz/stats'),
+  getQuran: () => api.get('/namaz/quran'),
+  saveQuran: (surahId, status) => api.post('/namaz/quran', { surahId, status }),
+  bulkImportQuran: (statuses) => api.post('/namaz/quran/bulk', { statuses }),
+}

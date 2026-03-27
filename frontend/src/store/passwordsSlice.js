@@ -23,19 +23,26 @@ export const deletePassword = createAsyncThunk('passwords/delete', async (id, { 
 
 const passwordsSlice = createSlice({
   name: 'passwords',
-  initialState: { items: [], loading: false, error: null },
+  initialState: { items: [], loading: false, saving: false, error: null },
   reducers: {},
   extraReducers: (builder) => {
     builder
       .addCase(fetchPasswords.pending, (s) => { s.loading = true })
       .addCase(fetchPasswords.fulfilled, (s, a) => { s.loading = false; s.items = a.payload })
       .addCase(fetchPasswords.rejected, (s, a) => { s.loading = false; s.error = a.payload })
-      .addCase(createPassword.fulfilled, (s, a) => { s.items.unshift(a.payload) })
+      .addCase(createPassword.pending, (s) => { s.saving = true })
+      .addCase(createPassword.fulfilled, (s, a) => { s.saving = false; s.items.unshift(a.payload) })
+      .addCase(createPassword.rejected, (s) => { s.saving = false })
+      .addCase(updatePassword.pending, (s) => { s.saving = true })
       .addCase(updatePassword.fulfilled, (s, a) => {
+        s.saving = false
         const i = s.items.findIndex(p => p._id === a.payload._id)
         if (i !== -1) s.items[i] = a.payload
       })
-      .addCase(deletePassword.fulfilled, (s, a) => { s.items = s.items.filter(p => p._id !== a.payload) })
+      .addCase(updatePassword.rejected, (s) => { s.saving = false })
+      .addCase(deletePassword.pending, (s) => { s.saving = true })
+      .addCase(deletePassword.fulfilled, (s, a) => { s.saving = false; s.items = s.items.filter(p => p._id !== a.payload) })
+      .addCase(deletePassword.rejected, (s) => { s.saving = false })
   }
 })
 

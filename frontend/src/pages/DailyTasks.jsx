@@ -1,129 +1,42 @@
 import { useEffect, useMemo, useState } from 'react'
-import { Modal, ProgressBar, SelectField, Badge } from '../components/common'
+import { useDispatch, useSelector } from 'react-redux'
+import { motion, AnimatePresence } from 'framer-motion'
+import { fetchTasks, createTask, updateTask, deleteTask } from '../store/dailyTasksSlice'
+import { Modal, ProgressBar, SelectField, Badge, LoadingSpinner, EmptyState, LoadingButton } from '../components/common'
 
 const CATEGORY_OPTIONS = ['Career', 'Learning', 'Health', 'Finance', 'Personal Growth', 'Other']
 const STATUS_OPTIONS = ['not-started', 'in-progress', 'completed', 'paused']
 const PRIORITY_OPTIONS = ['low', 'medium', 'high']
-const STORAGE_KEY = 'lifeportal.dailyTasks'
 
 const todayISO = new Date().toISOString().slice(0, 10)
 
-const addDays = (dateStr, days) => {
-  const next = new Date(dateStr)
-  next.setDate(next.getDate() + days)
-  return next.toISOString().slice(0, 10)
-}
+const PRIORITY_COLORS = { high: '#e53e3e', medium: '#d69e2e', low: '#38a169' }
 
-const INITIAL_TASKS = [
-  {
-    id: 1,
-    title: 'Apply for 1 new role',
-    date: todayISO,
-    category: 'Career',
-    status: 'in-progress',
-    priority: 'high',
-    notes: ''
-  },
-  {
-    id: 2,
-    title: 'Complete VU assignment',
-    date: todayISO,
-    category: 'Learning',
-    status: 'completed',
-    priority: 'medium',
-    notes: ''
-  },
-  {
-    id: 3,
-    title: 'Quran research notes',
-    date: todayISO,
-    category: 'Personal Growth',
-    status: 'not-started',
-    priority: 'low',
-    notes: ''
-  },
-  {
-    id: 4,
-    title: 'Evening walk (30 min)',
-    date: todayISO,
-    category: 'Health',
-    status: 'not-started',
-    priority: 'low',
-    notes: ''
-  },
-  {
-    id: 5,
-    title: 'Review budget targets',
-    date: addDays(todayISO, 1),
-    category: 'Finance',
-    status: 'not-started',
-    priority: 'medium',
-    notes: ''
-  }
-]
+const formatStatus = s => ({ 'not-started': 'Not Started', 'in-progress': 'In Progress', completed: 'Completed', paused: 'Paused' }[s] || s)
+const formatPriority = p => p ? `${p[0].toUpperCase()}${p.slice(1)}` : ''
+const formatDate = d => d ? new Date(d + 'T00:00:00').toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : ''
 
-const EMPTY_FORM = {
-  title: '',
-  date: todayISO,
-  category: 'Learning',
-  status: 'not-started',
-  priority: 'low',
-  notes: ''
-}
-
-const formatStatus = (status) => ({
-  'not-started': 'Not Started',
-  'in-progress': 'In Progress',
-  completed: 'Completed',
-  paused: 'Paused'
-}[status] || status)
-
-const formatPriority = (priority) => priority ? `${priority[0].toUpperCase()}${priority.slice(1)}` : ''
-
-const formatDate = (dateStr) => {
-  if (!dateStr) return ''
-  return new Date(dateStr).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' })
-}
+const EMPTY_FORM = { title: '', date: todayISO, category: 'Learning', status: 'not-started', priority: 'medium', notes: '' }
 
 export default function DailyTasks() {
-  const [tasks, setTasks] = useState(() => {
-    if (typeof window === 'undefined') return INITIAL_TASKS
-    try {
-      const raw = localStorage.getItem(STORAGE_KEY)
-      const parsed = raw ? JSON.parse(raw) : null
-      return Array.isArray(parsed) ? parsed : INITIAL_TASKS
-    } catch {
-      return INITIAL_TASKS
-    }
-  })
-  const [filters, setFilters] = useState({
-    search: '',
-    date: todayISO,
-    category: 'All',
-    status: 'All'
-  })
+  const dispatch = useDispatch()
+  const { items: tasks, loading, saving } = useSelector(s => s.dailyTasks)
+  const [filters, setFilters] = useState({ search: '', date: todayISO, category: 'All', status: 'All' })
   const [showModal, setShowModal] = useState(false)
   const [editTask, setEditTask] = useState(null)
   const [deleteConfirm, setDeleteConfirm] = useState(null)
   const [form, setForm] = useState(EMPTY_FORM)
 
-  useEffect(() => {
-    try {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(tasks))
-    } catch {
-      // Ignore storage errors (e.g. private mode)
-    }
-  }, [tasks])
+  useEffect(() => { dispatch(fetchTasks()) }, [dispatch])
 
   const filteredTasks = useMemo(() => {
     return tasks.filter(task => {
-      const matchesSearch = filters.search
-        ? task.title.toLowerCase().includes(filters.search.toLowerCase().trim())
-        : true
-      const matchesDate = filters.date ? task.date === filters.date : true
-      const matchesCategory = filters.category === 'All' ? true : task.category === filters.category
-      const matchesStatus = filters.status === 'All' ? true : task.status === filters.status
-      return matchesSearch && matchesDate && matchesCategory && matchesStatus
+      const q = filters.search.toLowerCase().trim()
+      const matchSearch = q ? task.title.toLowerCase().includes(q) : true
+      const matchDate = filters.date ? task.date === filters.date : true
+      const matchCat = filters.category === 'All' ? true : task.category === filters.category
+      const matchStatus = filters.status === 'All' ? true : task.status === filters.status
+      return matchSearch && matchDate && matchCat && matchStatus
     })
   }, [tasks, filters])
 
@@ -131,271 +44,174 @@ export default function DailyTasks() {
   const totalCount = filteredTasks.length
   const progress = totalCount ? Math.round((completedCount / totalCount) * 100) : 0
 
-  const displayDate = new Date(filters.date || todayISO).toLocaleDateString('en-US', {
+  const displayDate = new Date((filters.date || todayISO) + 'T00:00:00').toLocaleDateString('en-US', {
     weekday: 'long', month: 'long', day: 'numeric', year: 'numeric'
   })
 
-  const addTask = (e) => {
-    e.preventDefault()
-    if (!form.title.trim()) return
-    if (editTask) {
-      setTasks(prev => prev.map(task => (
-        task.id === editTask.id
-          ? {
-            ...task,
-            title: form.title.trim(),
-            date: form.date || todayISO,
-            category: form.category,
-            status: form.status,
-            priority: form.priority,
-            notes: form.notes
-          }
-          : task
-      )))
-    } else {
-      setTasks(prev => [{
-        id: Date.now(),
-        title: form.title.trim(),
-        date: form.date || todayISO,
-        category: form.category,
-        status: form.status,
-        priority: form.priority,
-        notes: form.notes
-      }, ...prev])
-    }
-    setForm(EMPTY_FORM)
-    setShowModal(false)
-    setEditTask(null)
+  const handleToggle = async (task) => {
+    const next = task.status === 'completed' ? 'not-started' : 'completed'
+    dispatch(updateTask({ id: task._id, data: { ...task, status: next } }))
   }
 
-  const toggleTask = (id) => {
-    setTasks(prev => prev.map(task => (
-      task.id === id
-        ? { ...task, status: task.status === 'completed' ? 'not-started' : 'completed' }
-        : task
-    )))
-  }
-
+  const openCreate = () => { setEditTask(null); setForm(EMPTY_FORM); setShowModal(true) }
   const openEdit = (task) => {
     setEditTask(task)
-    setForm({
-      title: task.title,
-      date: task.date,
-      category: task.category,
-      status: task.status,
-      priority: task.priority,
-      notes: task.notes || ''
-    })
+    setForm({ title: task.title, date: task.date, category: task.category, status: task.status, priority: task.priority, notes: task.notes || '' })
     setShowModal(true)
   }
 
-  const handleDelete = (id) => {
-    setTasks(prev => prev.filter(task => task.id !== id))
-    setDeleteConfirm(null)
-    if (editTask?.id === id) {
-      setEditTask(null)
-      setForm(EMPTY_FORM)
+  const handleSubmit = async (e) => {
+    e.preventDefault()
+    if (!form.title.trim()) return
+    const payload = { ...form, title: form.title.trim(), date: form.date || todayISO }
+    if (editTask) {
+      await dispatch(updateTask({ id: editTask._id, data: payload }))
+    } else {
+      await dispatch(createTask(payload))
     }
+    setShowModal(false); setEditTask(null)
   }
+
+  const handleDelete = async (id) => {
+    await dispatch(deleteTask(id))
+    setDeleteConfirm(null)
+  }
+
+  if (loading && tasks.length === 0) return <LoadingSpinner size={48} label="Loading your tasks…" />
 
   return (
     <div className="animate-fade-in">
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 12, marginBottom: 16 }}>
-        <div style={{ fontFamily: 'var(--font-serif)', fontSize: 18, fontWeight: 400 }}>Daily Tasks</div>
+      {/* Header */}
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: 12, marginBottom: 28 }}>
+        <div>
+          <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', color: 'var(--text-muted)', marginBottom: 8 }}>Daily Tasks</div>
+          <h1 style={{ fontFamily: 'var(--font-serif)', fontSize: 'clamp(1.8rem,4vw,2.6rem)', fontWeight: 400, margin: 0, letterSpacing: '-0.02em' }}>Task Manager</h1>
+          <p style={{ color: 'var(--text-secondary)', marginTop: 6, fontSize: 14 }}>Track what you accomplish each day — stored securely in the cloud.</p>
+        </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
-          <div style={{ fontSize: 12, color: 'var(--text-muted)' }}>{displayDate}</div>
-          <span className="badge" style={{ background: 'var(--accent-light)', color: 'var(--accent)' }}>
-            {progress}% today
-          </span>
+          <span style={{ fontSize: 12, color: 'var(--text-muted)' }}>{displayDate}</span>
+          <span className="badge" style={{ background: 'var(--accent-light)', color: 'var(--accent)', fontSize: 12 }}>{progress}% done</span>
+          <button className="btn btn-primary" onClick={openCreate} id="add-task-btn">+ Add Task</button>
         </div>
       </div>
 
-      <div style={{ marginBottom: 20 }}>
-        <h1 style={{ fontFamily: 'var(--font-serif)', fontSize: 28, fontWeight: 400, margin: 0 }}>Daily Task Manager</h1>
-        <p style={{ color: 'var(--text-secondary)', marginTop: 4 }}>Track what you accomplish each day. Build momentum.</p>
-      </div>
-
-      <div className="card" style={{ padding: '18px 20px', marginBottom: 18 }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10 }}>
-          <div style={{ fontWeight: 600 }}>{completedCount}/{totalCount} tasks completed</div>
-          <div style={{ fontWeight: 700, color: 'var(--accent)' }}>{progress}%</div>
+      {/* Progress Card */}
+      <div className="card card-premium" style={{ padding: '22px 26px', marginBottom: 20 }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12, flexWrap: 'wrap', gap: 8 }}>
+          <div>
+            <div style={{ fontWeight: 700, fontSize: 15 }}>{completedCount} of {totalCount} completed</div>
+            <div style={{ fontSize: 12, color: 'var(--text-muted)', marginTop: 2 }}>
+              {filters.date === todayISO ? "Today's tasks" : `Tasks for ${formatDate(filters.date)}`}
+            </div>
+          </div>
+          <div style={{ fontSize: 28, fontWeight: 800, color: 'var(--accent)' }}>{progress}%</div>
         </div>
-        <ProgressBar value={progress} color="var(--accent)" />
+        <ProgressBar value={progress} color="var(--accent)" height={8} />
       </div>
 
-      <div style={{ display: 'flex', flexWrap: 'wrap', gap: 12, alignItems: 'center', marginBottom: 16 }}>
-        <div style={{ flex: '1 1 260px' }}>
-          <input
-            className="input-field"
-            placeholder="Search tasks..."
-            value={filters.search}
-            onChange={e => setFilters(prev => ({ ...prev, search: e.target.value }))}
-          />
+      {/* Filters */}
+      <div style={{ display: 'flex', flexWrap: 'wrap', gap: 10, alignItems: 'center', marginBottom: 18 }}>
+        <div style={{ flex: '1 1 220px' }}>
+          <input className="input-field" placeholder="🔍  Search tasks…" value={filters.search} onChange={e => setFilters(p => ({ ...p, search: e.target.value }))} />
         </div>
         <div style={{ flex: '0 1 170px' }}>
-          <input
-            type="date"
-            className="input-field"
-            value={filters.date}
-            onChange={e => setFilters(prev => ({ ...prev, date: e.target.value }))}
-          />
+          <input type="date" className="input-field" value={filters.date} onChange={e => setFilters(p => ({ ...p, date: e.target.value }))} />
         </div>
-        <div style={{ flex: '0 1 160px' }}>
-          <select
-            className="input-field"
-            value={filters.category}
-            onChange={e => setFilters(prev => ({ ...prev, category: e.target.value }))}
-          >
-            {['All', ...CATEGORY_OPTIONS].map(opt => (
-              <option key={opt} value={opt}>{opt}</option>
-            ))}
+        <div style={{ flex: '0 1 155px' }}>
+          <select className="input-field" value={filters.category} onChange={e => setFilters(p => ({ ...p, category: e.target.value }))}>
+            {['All', ...CATEGORY_OPTIONS].map(o => <option key={o}>{o}</option>)}
           </select>
         </div>
-        <div style={{ flex: '0 1 160px' }}>
-          <select
-            className="input-field"
-            value={filters.status}
-            onChange={e => setFilters(prev => ({ ...prev, status: e.target.value }))}
-          >
-            {['All', ...STATUS_OPTIONS].map(opt => (
-              <option key={opt} value={opt}>{opt === 'All' ? 'All Status' : formatStatus(opt)}</option>
-            ))}
+        <div style={{ flex: '0 1 155px' }}>
+          <select className="input-field" value={filters.status} onChange={e => setFilters(p => ({ ...p, status: e.target.value }))}>
+            {['All', ...STATUS_OPTIONS].map(o => <option key={o} value={o}>{o === 'All' ? 'All Status' : formatStatus(o)}</option>)}
           </select>
         </div>
-        <button className="btn btn-secondary" type="button">Categories</button>
-        <button className="btn btn-primary" type="button" onClick={() => { setEditTask(null); setForm(EMPTY_FORM); setShowModal(true) }}>+ Add Task</button>
       </div>
 
-      <div className="card" style={{ padding: 0, overflow: 'hidden' }}>
-        <div style={{ padding: '16px 20px', borderBottom: '1px solid var(--border)', fontWeight: 600 }}>Daily Tasks</div>
-        <div style={{ padding: '16px 20px', display: 'flex', flexDirection: 'column', gap: 12 }}>
+      {/* Task List */}
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+        <AnimatePresence mode="popLayout">
           {filteredTasks.length === 0 ? (
-            <div style={{ textAlign: 'center', color: 'var(--text-muted)', fontSize: 13, padding: '24px 0' }}>
-              No tasks found for these filters.
-            </div>
-          ) : (
-            filteredTasks.map(task => (
-              <div
-                key={task.id}
-                style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: 12,
-                  padding: '12px 14px',
-                  borderRadius: 10,
-                  border: '1px solid var(--border)',
-                  background: 'var(--surface)'
-                }}
-              >
-                <input
-                  type="checkbox"
-                  checked={task.status === 'completed'}
-                  onChange={() => toggleTask(task.id)}
-                  style={{ width: 16, height: 16, accentColor: 'var(--accent)' }}
-                />
-                <div style={{ flex: 1 }}>
-                  <div style={{
-                    fontWeight: 600,
-                    textDecoration: task.status === 'completed' ? 'line-through' : 'none',
-                    color: task.status === 'completed' ? 'var(--text-muted)' : 'var(--text-primary)'
-                  }}>
-                    {task.title}
-                  </div>
-                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, alignItems: 'center', marginTop: 6 }}>
-                    <Badge type={task.priority}>{formatPriority(task.priority)}</Badge>
-                    <Badge type={task.category}>{task.category}</Badge>
-                    <Badge type={task.status}>{formatStatus(task.status)}</Badge>
-                    <span style={{ fontSize: 12, color: 'var(--text-muted)' }}>{formatDate(task.date)}</span>
-                  </div>
+            <EmptyState icon="✅" title="No tasks found" description="Add a new task or adjust your filters to see tasks here." action={<button className="btn btn-primary" onClick={openCreate}>+ Add Task</button>} />
+          ) : filteredTasks.map((task, i) => (
+            <motion.div
+              key={task._id}
+              className="task-card"
+              initial={{ opacity: 0, y: 12 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, x: -20 }}
+              transition={{ duration: 0.25, delay: i * 0.03 }}
+              layout
+            >
+              {/* Priority strip */}
+              <div className="task-card-priority-strip" style={{ background: PRIORITY_COLORS[task.priority] || '#ccc' }} />
+
+              <input
+                type="checkbox"
+                className="task-checkbox"
+                checked={task.status === 'completed'}
+                onChange={() => handleToggle(task)}
+                id={`task-cb-${task._id}`}
+              />
+
+              <div className="task-content">
+                <div className="task-title" style={{ textDecoration: task.status === 'completed' ? 'line-through' : 'none', color: task.status === 'completed' ? 'var(--text-muted)' : 'var(--text-primary)' }}>
+                  {task.title}
                 </div>
-                <div style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
-                  <button
-                    className="btn btn-ghost"
-                    type="button"
-                    onClick={() => openEdit(task)}
-                    style={{ padding: '6px 10px', fontSize: 12 }}
-                  >
-                    Edit
-                  </button>
-                  <button
-                    className="btn btn-danger"
-                    type="button"
-                    onClick={() => setDeleteConfirm(task.id)}
-                    style={{ padding: '6px 10px', fontSize: 12 }}
-                  >
-                    Delete
-                  </button>
+                <div className="task-meta">
+                  <Badge type={task.priority}>{formatPriority(task.priority)}</Badge>
+                  <Badge type={task.category}>{task.category}</Badge>
+                  <Badge type={task.status}>{formatStatus(task.status)}</Badge>
+                  <span style={{ fontSize: 11, color: 'var(--text-muted)' }}>{formatDate(task.date)}</span>
+                  {task.notes && <span style={{ fontSize: 11, color: 'var(--text-muted)', fontStyle: 'italic' }}>"{task.notes}"</span>}
                 </div>
               </div>
-            ))
-          )}
-        </div>
+
+              <div className="task-actions">
+                <button className="btn btn-ghost" onClick={() => openEdit(task)} style={{ padding: '6px 12px', fontSize: 12, minHeight: 34 }}>Edit</button>
+                <button className="btn btn-danger" onClick={() => setDeleteConfirm(task._id)} style={{ padding: '6px 12px', fontSize: 12, minHeight: 34 }}>Delete</button>
+              </div>
+            </motion.div>
+          ))}
+        </AnimatePresence>
       </div>
 
+      {/* Delete Confirm */}
       {deleteConfirm && (
         <Modal title="Delete Task?" onClose={() => setDeleteConfirm(null)} maxWidth={380}>
-          <p style={{ color: 'var(--text-secondary)', marginBottom: 24 }}>This will permanently delete the task.</p>
+          <p style={{ color: 'var(--text-secondary)', marginBottom: 24 }}>This task will be permanently removed from your account.</p>
           <div style={{ display: 'flex', gap: 10, justifyContent: 'flex-end' }}>
             <button className="btn btn-secondary" onClick={() => setDeleteConfirm(null)}>Cancel</button>
-            <button className="btn btn-danger" onClick={() => handleDelete(deleteConfirm)}>Delete Task</button>
+            <LoadingButton loading={saving} className="btn btn-danger" onClick={() => handleDelete(deleteConfirm)}>Delete Task</LoadingButton>
           </div>
         </Modal>
       )}
 
+      {/* Add/Edit Modal */}
       {showModal && (
-        <Modal title={editTask ? 'Edit Task' : 'Add Task'} onClose={() => { setShowModal(false); setEditTask(null) }} maxWidth={620}>
-          <form onSubmit={addTask}>
+        <Modal title={editTask ? 'Edit Task' : 'Add New Task'} onClose={() => { setShowModal(false); setEditTask(null) }} maxWidth={580}>
+          <form onSubmit={handleSubmit}>
             <div className="form-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
               <div style={{ gridColumn: '1 / -1' }}>
-                <label style={{ display: 'block', fontWeight: 600, fontSize: 13, marginBottom: 6 }}>Task Title</label>
-                <input
-                  className="input-field"
-                  placeholder="What do you want to accomplish?"
-                  value={form.title}
-                  onChange={e => setForm(prev => ({ ...prev, title: e.target.value }))}
-                  required
-                />
+                <label style={{ display: 'block', fontWeight: 600, fontSize: 13, marginBottom: 7 }}>Task Title *</label>
+                <input className="input-field" placeholder="What do you want to accomplish?" value={form.title} onChange={e => setForm(p => ({ ...p, title: e.target.value }))} required autoFocus />
               </div>
               <div>
-                <label style={{ display: 'block', fontWeight: 600, fontSize: 13, marginBottom: 6 }}>Date</label>
-                <input
-                  type="date"
-                  className="input-field"
-                  value={form.date}
-                  onChange={e => setForm(prev => ({ ...prev, date: e.target.value }))}
-                />
+                <label style={{ display: 'block', fontWeight: 600, fontSize: 13, marginBottom: 7 }}>Date</label>
+                <input type="date" className="input-field" value={form.date} onChange={e => setForm(p => ({ ...p, date: e.target.value }))} />
               </div>
-              <SelectField
-                label="Category"
-                value={form.category}
-                onChange={v => setForm(prev => ({ ...prev, category: v }))}
-                options={CATEGORY_OPTIONS}
-              />
-              <SelectField
-                label="Priority"
-                value={form.priority}
-                onChange={v => setForm(prev => ({ ...prev, priority: v }))}
-                options={PRIORITY_OPTIONS}
-              />
-              <SelectField
-                label="Status"
-                value={form.status}
-                onChange={v => setForm(prev => ({ ...prev, status: v }))}
-                options={STATUS_OPTIONS.map(s => ({ value: s, label: formatStatus(s) }))}
-              />
+              <SelectField label="Category" value={form.category} onChange={v => setForm(p => ({ ...p, category: v }))} options={CATEGORY_OPTIONS} />
+              <SelectField label="Priority" value={form.priority} onChange={v => setForm(p => ({ ...p, priority: v }))} options={PRIORITY_OPTIONS} />
+              <SelectField label="Status" value={form.status} onChange={v => setForm(p => ({ ...p, status: v }))} options={STATUS_OPTIONS.map(s => ({ value: s, label: formatStatus(s) }))} />
               <div style={{ gridColumn: '1 / -1' }}>
-                <label style={{ display: 'block', fontWeight: 600, fontSize: 13, marginBottom: 6 }}>Notes</label>
-                <input
-                  className="input-field"
-                  placeholder="Optional notes"
-                  value={form.notes}
-                  onChange={e => setForm(prev => ({ ...prev, notes: e.target.value }))}
-                />
+                <label style={{ display: 'block', fontWeight: 600, fontSize: 13, marginBottom: 7 }}>Notes</label>
+                <input className="input-field" placeholder="Optional notes or context…" value={form.notes} onChange={e => setForm(p => ({ ...p, notes: e.target.value }))} />
               </div>
             </div>
-            <div style={{ display: 'flex', gap: 10, justifyContent: 'flex-end', marginTop: 20 }}>
+            <div style={{ display: 'flex', gap: 10, justifyContent: 'flex-end', marginTop: 24 }}>
               <button type="button" className="btn btn-secondary" onClick={() => setShowModal(false)}>Cancel</button>
-              <button type="submit" className="btn btn-primary">{editTask ? 'Save Changes' : 'Save Task'}</button>
+              <LoadingButton type="submit" loading={saving} loadingLabel="Saving…">{editTask ? 'Save Changes' : 'Save Task'}</LoadingButton>
             </div>
           </form>
         </Modal>

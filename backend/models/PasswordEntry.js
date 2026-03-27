@@ -18,10 +18,10 @@ const passwordEntrySchema = new mongoose.Schema({
     trim: true,
     maxlength: [120, 'Username too long']
   },
-  password: {
+  // Stores AES-256-GCM encrypted value as "iv:authTag:ciphertext"
+  encryptedPassword: {
     type: String,
-    trim: true,
-    maxlength: [500, 'Password too long']
+    default: ''
   }
 }, { timestamps: true });
 

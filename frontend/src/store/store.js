@@ -10,6 +10,8 @@ import diaryReducer from './diarySlice'
 import passwordsReducer from './passwordsSlice'
 import accountsReducer from './accountsSlice'
 import seHubReducer from './seHubSlice'
+import dailyTasksReducer from './dailyTasksSlice'
+import namazReducer from './namazSlice'
 
 export const store = configureStore({
   reducer: {
@@ -24,5 +26,7 @@ export const store = configureStore({
     passwords: passwordsReducer,
     accounts: accountsReducer,
     seHub: seHubReducer,
+    dailyTasks: dailyTasksReducer,
+    namaz: namazReducer,
   },
 })
