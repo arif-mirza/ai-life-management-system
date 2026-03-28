@@ -28,7 +28,7 @@ const upsertPrayerLog = async (req, res) => {
 
     const log = await NamazLog.findOneAndUpdate(
       { user: req.user._id, date },
-      { fajr, zuhar, asar, magrib, isha },
+      { $set: { fajr, zuhar, asar, magrib, isha } },
       { new: true, upsert: true, runValidators: true, setDefaultsOnInsert: true }
     );
     res.json({ success: true, data: log });
@@ -98,7 +98,7 @@ const upsertQuranStatus = async (req, res) => {
 
     const entry = await QuranProgress.findOneAndUpdate(
       { user: req.user._id, surahId: Number(surahId) },
-      { status },
+      { $set: { status } },
       { new: true, upsert: true, runValidators: true, setDefaultsOnInsert: true }
     );
     res.json({ success: true, data: entry });
@@ -116,7 +116,7 @@ const bulkUpsertQuran = async (req, res) => {
     const ops = statuses.map(({ surahId, status }) => ({
       updateOne: {
         filter: { user: req.user._id, surahId: Number(surahId) },
-        update: { status },
+        update: { $set: { status } },
         upsert: true
       }
     }));
@@ -136,7 +136,7 @@ const bulkUpsertPrayerLog = async (req, res) => {
     const ops = entries.map(({ date, fajr, zuhar, asar, magrib, isha }) => ({
       updateOne: {
         filter: { user: req.user._id, date },
-        update: { fajr, zuhar, asar, magrib, isha },
+        update: { $set: { fajr, zuhar, asar, magrib, isha } },
         upsert: true
       }
     }));

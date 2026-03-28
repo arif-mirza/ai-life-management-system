@@ -47,15 +47,30 @@ export default function Passwords() {
     e.preventDefault()
     if (!form.platform.trim() || !form.username.trim()) return
     const payload = { platform: form.platform.trim(), username: form.username.trim(), password: form.password || '' }
-    if (editEntry) {
-      await dispatch(updatePassword({ id: editEntry._id, data: payload }))
-    } else {
-      await dispatch(createPassword(payload))
+    
+    try {
+      if (editEntry) {
+        await dispatch(updatePassword({ id: editEntry._id, data: payload })).unwrap()
+        import('react-hot-toast').then(({ default: toast }) => toast.success('Password updated!'))
+      } else {
+        await dispatch(createPassword(payload)).unwrap()
+        import('react-hot-toast').then(({ default: toast }) => toast.success('Password saved!'))
+      }
+      setShowModal(false)
+    } catch (err) {
+      import('react-hot-toast').then(({ default: toast }) => toast.error(`Failed to save: ${err}`))
     }
-    setShowModal(false)
   }
 
-  const handleDelete = async (id) => { await dispatch(deletePassword(id)); setDeleteConfirm(null) }
+  const handleDelete = async (id) => {
+    try {
+      await dispatch(deletePassword(id)).unwrap()
+      import('react-hot-toast').then(({ default: toast }) => toast.success('Password deleted!'))
+      setDeleteConfirm(null)
+    } catch (err) {
+      import('react-hot-toast').then(({ default: toast }) => toast.error(`Failed to delete: ${err}`))
+    }
+  }
 
   const copyToClipboard = (text) => {
     navigator.clipboard.writeText(text).then(() => {

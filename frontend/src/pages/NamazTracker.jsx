@@ -344,32 +344,28 @@ export default function NamazTracker() {
               </select>
             </div>
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(180px,1fr))', gap: 14 }}>
-              <div className="card" style={{ padding: 18, background: 'linear-gradient(135deg,#e2f5ea,#f6fbf8)', borderColor: '#9dd6b0', boxShadow: 'none' }}>
-                <div style={{ fontSize: 11, letterSpacing: '0.08em', textTransform: 'uppercase', color: '#1a7a42', fontWeight: 700 }}>Year Prayer Rate</div>
-                <div style={{ fontSize: 36, fontWeight: 800, marginTop: 8, color: '#1a7a42' }}>{selYearSummary.rate}%</div>
+              <div className="card history-green" style={{ padding: 18, boxShadow: 'none' }}>
+                <div style={{ fontSize: 11, letterSpacing: '0.08em', textTransform: 'uppercase', color: 'var(--history-text)', fontWeight: 700 }}>Year Prayer Rate</div>
+                <div style={{ fontSize: 36, fontWeight: 800, marginTop: 8, color: 'var(--history-text)' }}>{selYearSummary.rate}%</div>
                 <div style={{ fontSize: 12, color: 'var(--text-secondary)', marginTop: 4 }}>{selYearSummary.daysLogged} days logged in {selYear}</div>
               </div>
-              <div className="card" style={{ padding: 18, background: 'linear-gradient(135deg,#fef8e7,#fffdf6)', borderColor: '#f0d08a', boxShadow: 'none' }}>
-                <div style={{ fontSize: 11, letterSpacing: '0.08em', textTransform: 'uppercase', color: '#b8780a', fontWeight: 700 }}>Months Active</div>
-                <div style={{ fontSize: 36, fontWeight: 800, marginTop: 8, color: '#b8780a' }}>{historyMonths.filter(m => m.daysLogged > 0).length}/12</div>
+              <div className="card history-amber" style={{ padding: 18, boxShadow: 'none' }}>
+                <div style={{ fontSize: 11, letterSpacing: '0.08em', textTransform: 'uppercase', color: 'var(--history-text)', fontWeight: 700 }}>Months Active</div>
+                <div style={{ fontSize: 36, fontWeight: 800, marginTop: 8, color: 'var(--history-text)' }}>{historyMonths.filter(m => m.daysLogged > 0).length}/12</div>
                 <div style={{ fontSize: 12, color: 'var(--text-secondary)', marginTop: 4 }}>Months with saved entries</div>
               </div>
             </div>
           </div>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill,minmax(170px,1fr))', gap: 14 }}>
             {historyMonths.map(month => {
-              const accent = month.rate >= 80
-                ? { bg: 'linear-gradient(135deg,#e2f5ea,#f6fbf8)', border: '#9dd6b0', text: '#1a7a42' }
-                : month.rate >= 60
-                ? { bg: 'linear-gradient(135deg,#fef8e7,#fffdf6)', border: '#f0d08a', text: '#b8780a' }
-                : { bg: 'linear-gradient(135deg,#f8f4ee,#fff)', border: 'var(--border)', text: 'var(--text-primary)' }
+              const accentClass = month.rate >= 80 ? 'history-green' : month.rate >= 60 ? 'history-amber' : 'history-default';
               return (
-                <motion.div key={month.label} className="card" whileHover={{ y: -3, scale: 1.01 }}
-                  style={{ padding: 16, background: accent.bg, borderColor: accent.border, transition: 'all 0.2s' }}>
+                <motion.div key={month.label} className={`card ${accentClass}`} whileHover={{ y: -3, scale: 1.01 }}
+                  style={{ padding: 16, transition: 'all 0.2s' }}>
                   <div style={{ fontSize: 10, letterSpacing: '0.08em', textTransform: 'uppercase', color: 'var(--text-muted)', fontWeight: 700 }}>{selYear}</div>
-                  <div style={{ fontWeight: 800, fontSize: 20, color: accent.text, marginTop: 2 }}>{month.label}</div>
-                  <div style={{ fontSize: 28, fontWeight: 800, color: accent.text, marginTop: 4 }}>{month.rate}%</div>
-                  <div style={{ marginTop: 10 }}><ProgressBar value={month.rate} color={accent.text} height={5} /></div>
+                  <div style={{ fontWeight: 800, fontSize: 20, color: 'var(--history-text)', marginTop: 2 }}>{month.label}</div>
+                  <div style={{ fontSize: 28, fontWeight: 800, color: 'var(--history-text)', marginTop: 4 }}>{month.rate}%</div>
+                  <div style={{ marginTop: 10 }}><ProgressBar value={month.rate} color="var(--history-text)" height={5} /></div>
                   <div style={{ fontSize: 11, color: 'var(--text-secondary)', marginTop: 8 }}>{month.daysLogged} day{month.daysLogged !== 1 ? 's' : ''} logged</div>
                 </motion.div>
               )

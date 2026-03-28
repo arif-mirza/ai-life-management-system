@@ -427,6 +427,16 @@ html.dark .prayer-card { box-shadow:0 4px 18px rgba(0,0,0,0.3); }
 .dark-toggle { display:flex; align-items:center; gap:8px; padding:8px 14px; border-radius:10px; background:var(--surface-2); border:1.5px solid var(--border); color:var(--text-secondary); font-size:13px; font-weight:600; cursor:pointer; transition:var(--transition); }
 .dark-toggle:hover { background:var(--border); color:var(--text-primary); }
 
+/* ─── History Cards ───────────────────────────────────────── */
+.history-green { background:linear-gradient(135deg,#e2f5ea,#f6fbf8) !important; border-color:#9dd6b0 !important; --history-text: #1a7a42; }
+html.dark .history-green { background:linear-gradient(135deg,rgba(78,202,136,0.15),rgba(78,202,136,0.04)) !important; border-color:rgba(78,202,136,0.3) !important; --history-text: var(--accent); }
+
+.history-amber { background:linear-gradient(135deg,#fef8e7,#fffdf6) !important; border-color:#f0d08a !important; --history-text: #b8780a; }
+html.dark .history-amber { background:linear-gradient(135deg,rgba(200,140,40,0.15),rgba(200,140,40,0.04)) !important; border-color:rgba(200,140,40,0.3) !important; --history-text: #dbaa32; }
+
+.history-default { background:linear-gradient(135deg,#f8f4ee,#fff) !important; border-color:var(--border) !important; --history-text: var(--text-primary); }
+html.dark .history-default { background:var(--surface-2) !important; border-color:var(--border) !important; --history-text: var(--text-primary); }
+
 /* ─── Visibility ──────────────────────────────────────────── */
 .desktop-only { display:block; }
 .mobile-only  { display:none; }
