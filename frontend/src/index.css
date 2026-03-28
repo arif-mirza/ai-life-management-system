@@ -32,6 +32,13 @@
   --modal-border: #dfd8c8;
   --input-bg: rgba(255,255,255,0.96);
   --card-shine: linear-gradient(135deg,rgba(255,255,255,0.55),transparent 50%);
+  --note-default: #ffffff;
+  --note-yellow: #fef9e7;
+  --note-green: #eafaf1;
+  --note-blue: #eef0fd;
+  --note-red: #fdeceb;
+  --note-orange: #fdf3e7;
+  --note-teal: #e8f5ee;
 }
 
 /* ─── Dark Mode Tokens ───────────────────────────────────── */
@@ -56,6 +63,13 @@ html.dark {
   --modal-border: #2e3448;
   --input-bg: rgba(30,34,48,0.96);
   --card-shine: linear-gradient(135deg,rgba(255,255,255,0.04),transparent 50%);
+  --note-default: var(--surface-2);
+  --note-yellow: rgba(230,190,80,0.12);
+  --note-green: rgba(78,202,136,0.12);
+  --note-blue: rgba(100,120,220,0.15);
+  --note-red: rgba(220,90,90,0.15);
+  --note-orange: rgba(230,130,50,0.15);
+  --note-teal: rgba(60,180,150,0.12);
 }
 
 /* ─── Reset ───────────────────────────────────────────────── */

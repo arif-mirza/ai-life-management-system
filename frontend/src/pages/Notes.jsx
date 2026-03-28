@@ -7,6 +7,19 @@ import toast from 'react-hot-toast'
 const CATEGORIES = ['General', 'Goal', 'Reflection', 'Idea', 'Journal', 'Quote']
 const COLORS = ['#FFFFFF', '#FEF9E7', '#EAFAF1', '#EEF0FD', '#FDECEB', '#FDF3E7', '#E8F5EE']
 
+const mapNoteColor = (hex) => {
+  const map = {
+    '#FFFFFF': 'var(--note-default)',
+    '#FEF9E7': 'var(--note-yellow)',
+    '#EAFAF1': 'var(--note-green)',
+    '#EEF0FD': 'var(--note-blue)',
+    '#FDECEB': 'var(--note-red)',
+    '#FDF3E7': 'var(--note-orange)',
+    '#E8F5EE': 'var(--note-teal)',
+  }
+  return map[hex?.toUpperCase()] || 'var(--note-default)'
+}
+
 const EMPTY_FORM = { title: '', content: '', category: 'General', tags: '', isPinned: false, color: '#FFFFFF' }
 
 export default function Notes() {
@@ -57,7 +70,7 @@ export default function Notes() {
   }
 
   const NoteCard = ({ note }) => (
-    <div className="card" style={{ padding: '18px 20px', background: note.color || '#fff', cursor: 'pointer', position: 'relative' }}
+    <div className="card" style={{ padding: '18px 20px', background: mapNoteColor(note.color), cursor: 'pointer', position: 'relative' }}
       onClick={() => openEdit(note)}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 8 }}>
         <div style={{ flex: 1, overflow: 'hidden' }}>
@@ -159,20 +172,6 @@ export default function Notes() {
                 required rows={6} style={{ resize: 'vertical' }} />
             </div>
             <div className="form-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14, marginBottom: 14 }}>
-              <SelectField label="Category" value={form.category} onChange={v => setForm(p => ({ ...p, category: v }))}
-                options={CATEGORIES.map(c => ({ value: c, label: c }))} />
-              <div>
-                <label style={{ display: 'block', fontWeight: 600, fontSize: 13, marginBottom: 6 }}>Color</label>
-                <div style={{ display: 'flex', gap: 6 }}>
-                  {COLORS.map(c => (
-                    <button key={c} type="button" onClick={() => setForm(p => ({ ...p, color: c }))}
-                      style={{ width: 28, height: 28, borderRadius: 7, background: c, border: `2px solid ${form.color === c ? 'var(--accent)' : 'var(--border)'}`, cursor: 'pointer' }} />
-                  ))}
-                </div>
-              </div>
-            </div>
-            <div style={{ marginBottom: 14 }}>
-              <label style={{ display: 'block', fontWeight: 600, fontSize: 13, marginBottom: 6 }}>Tags (comma separated)</label>
               <input className="input-field" placeholder="idea, career, personal..." value={form.tags}
                 onChange={e => setForm(p => ({ ...p, tags: e.target.value }))} />
             </div>
