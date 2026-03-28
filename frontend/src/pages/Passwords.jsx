@@ -154,29 +154,31 @@ export default function Passwords() {
               </tbody>
             </table>
           </div>
-          <div className="mobile-only" style={{ padding: '14px', display: 'grid', gap: 10 }}>
-            {filtered.map(e => (
-              <div key={e._id} style={{ border: '1px solid var(--border)', borderRadius: 14, padding: 14, background: 'var(--surface)' }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', gap: 8, marginBottom: 6 }}>
-                  <div style={{ fontWeight: 700, display: 'flex', alignItems: 'center', gap: 6 }}>
-                    <span style={{ fontSize: 16 }}>🔐</span>{e.platform}
+          <div className="mobile-only">
+            <div style={{ padding: '14px', display: 'grid', gap: 10 }}>
+              {filtered.map(e => (
+                <div key={e._id} style={{ border: '1px solid var(--border)', borderRadius: 14, padding: 14, background: 'var(--surface)' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', gap: 8, marginBottom: 6 }}>
+                    <div style={{ fontWeight: 700, display: 'flex', alignItems: 'center', gap: 6 }}>
+                      <span style={{ fontSize: 16 }}>🔐</span>{e.platform}
+                    </div>
+                    <div style={{ fontSize: 11, color: 'var(--text-muted)' }}>{formatDate(e.updatedAt)}</div>
                   </div>
-                  <div style={{ fontSize: 11, color: 'var(--text-muted)' }}>{formatDate(e.updatedAt)}</div>
+                  <div style={{ fontSize: 12, color: 'var(--text-muted)', marginBottom: 8 }}>{e.username}</div>
+                  <div style={{ fontSize: 13, fontFamily: 'monospace', marginBottom: 10 }}>
+                    {visibleId === e._id ? (e.password || '—') : maskValue(e.password)}
+                  </div>
+                  <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
+                    <button className="btn btn-ghost" style={{ padding: '5px 10px', fontSize: 11, minHeight: 32 }} onClick={() => setVisibleId(visibleId === e._id ? null : e._id)}>
+                      {visibleId === e._id ? '🙈' : '👁'} {visibleId === e._id ? 'Hide' : 'Reveal'}
+                    </button>
+                    <button className="btn btn-ghost" style={{ padding: '5px 10px', fontSize: 11, minHeight: 32 }} onClick={() => copyToClipboard(e.password)}>📋 Copy</button>
+                    <button className="btn btn-ghost" style={{ padding: '5px 10px', fontSize: 11, minHeight: 32 }} onClick={() => openEdit(e)}>Edit</button>
+                    <button className="btn btn-danger" style={{ padding: '5px 10px', fontSize: 11, minHeight: 32 }} onClick={() => setDeleteConfirm(e._id)}>Delete</button>
+                  </div>
                 </div>
-                <div style={{ fontSize: 12, color: 'var(--text-muted)', marginBottom: 8 }}>{e.username}</div>
-                <div style={{ fontSize: 13, fontFamily: 'monospace', marginBottom: 10 }}>
-                  {visibleId === e._id ? (e.password || '—') : maskValue(e.password)}
-                </div>
-                <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
-                  <button className="btn btn-ghost" style={{ padding: '5px 10px', fontSize: 11, minHeight: 32 }} onClick={() => setVisibleId(visibleId === e._id ? null : e._id)}>
-                    {visibleId === e._id ? '🙈' : '👁'} {visibleId === e._id ? 'Hide' : 'Reveal'}
-                  </button>
-                  <button className="btn btn-ghost" style={{ padding: '5px 10px', fontSize: 11, minHeight: 32 }} onClick={() => copyToClipboard(e.password)}>📋 Copy</button>
-                  <button className="btn btn-ghost" style={{ padding: '5px 10px', fontSize: 11, minHeight: 32 }} onClick={() => openEdit(e)}>Edit</button>
-                  <button className="btn btn-danger" style={{ padding: '5px 10px', fontSize: 11, minHeight: 32 }} onClick={() => setDeleteConfirm(e._id)}>Delete</button>
-                </div>
-              </div>
-            ))}
+              ))}
+            </div>
           </div>
         </div>
       )}
