@@ -23,11 +23,6 @@ const EMPTY_FORM = {
   note: ''
 }
 
-const formatCurrency = (value) => {
-  const num = Number(value) || 0
-  return num.toLocaleString('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: 0 })
-}
-
 const formatDate = (value) => {
   if (!value) return '—'
   const d = new Date(value)
@@ -38,6 +33,14 @@ const formatDate = (value) => {
 export default function Accounts() {
   const dispatch = useDispatch()
   const { items, loading } = useSelector(s => s.accounts)
+  const { user } = useSelector(s => s.auth)
+  
+  const currency = user?.preferences?.currency || 'USD'
+  
+  const formatCurrency = (value) => {
+    const num = Number(value) || 0
+    return num.toLocaleString('en-US', { style: 'currency', currency, maximumFractionDigits: 0 })
+  }
 
   const [showModal, setShowModal] = useState(false)
   const [editEntry, setEditEntry] = useState(null)
