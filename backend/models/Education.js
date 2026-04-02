@@ -16,6 +16,12 @@ const courseSchema = new mongoose.Schema({
 const semesterSchema = new mongoose.Schema({
   title: { type: String, required: true, trim: true, maxlength: 80 },
   year: { type: Number, required: true, min: 2000, max: 2100 },
+  examDate: { type: Date },
+  status: {
+    type: String,
+    enum: ['not-started', 'in-progress', 'completed'],
+    default: 'not-started'
+  },
   courses: [courseSchema]
 }, { timestamps: true });
 

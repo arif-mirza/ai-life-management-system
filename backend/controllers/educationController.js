@@ -16,13 +16,13 @@ const getEducation = async (req, res) => {
 // @POST /api/education/semesters
 const addSemester = async (req, res) => {
   try {
-    const { title, year } = req.body;
+    const { title, year, examDate, status } = req.body;
     if (!title || !year) return res.status(400).json({ success: false, message: 'Title and year are required' });
 
     let education = await Education.findOne({ user: req.user._id });
     if (!education) education = await Education.create({ user: req.user._id, semesters: [] });
 
-    education.semesters.unshift({ title, year });
+    education.semesters.unshift({ title, year, examDate, status });
     await education.save();
     res.status(201).json({ success: true, data: education });
   } catch (err) {
@@ -34,7 +34,7 @@ const addSemester = async (req, res) => {
 const updateSemester = async (req, res) => {
   try {
     const { semesterId } = req.params;
-    const { title, year } = req.body;
+    const { title, year, examDate, status } = req.body;
 
     const education = await Education.findOne({ user: req.user._id });
     if (!education) return res.status(404).json({ success: false, message: 'Education record not found' });
@@ -44,6 +44,8 @@ const updateSemester = async (req, res) => {
 
     if (title !== undefined) semester.title = title;
     if (year !== undefined) semester.year = year;
+    if (examDate !== undefined) semester.examDate = examDate || null;
+    if (status !== undefined) semester.status = status;
 
     await education.save();
     res.json({ success: true, data: education });

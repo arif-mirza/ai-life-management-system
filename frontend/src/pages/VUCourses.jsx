@@ -21,7 +21,9 @@ const formatStatus = (status) => ({
 
 const EMPTY_SEMESTER = {
   title: '',
-  year: new Date().getFullYear()
+  year: new Date().getFullYear(),
+  examDate: '',
+  status: 'not-started'
 }
 
 const EMPTY_COURSE = {
@@ -38,8 +40,7 @@ const getSemesterTotals = (semester) => {
   const totalLectures = courses.reduce((sum, c) => sum + (Number(c.totalLectures) || 0), 0)
   const covered = courses.reduce((sum, c) => sum + (Number(c.covered) || 0), 0)
   const progress = totalLectures ? Math.round((covered / totalLectures) * 100) : 0
-  const status = progress === 100 && courses.length > 0 ? 'completed' : covered > 0 ? 'in-progress' : 'not-started'
-  return { totalLectures, covered, progress, status, coursesCount: courses.length }
+  return { totalLectures, covered, progress, coursesCount: courses.length }
 }
 
 export default function VUCourses() {
@@ -80,14 +81,24 @@ export default function VUCourses() {
 
   const openEditSemester = (semester) => {
     setEditSemester(semester)
-    setSemesterForm({ title: semester.title, year: semester.year })
+    setSemesterForm({ 
+      title: semester.title, 
+      year: semester.year,
+      examDate: semester.examDate ? semester.examDate.slice(0, 10) : '',
+      status: semester.status || 'not-started'
+    })
     setShowSemesterModal(true)
   }
 
   const submitSemester = async (e) => {
     e.preventDefault()
     if (!semesterForm.title.trim()) return
-    const payload = { title: semesterForm.title.trim(), year: Number(semesterForm.year) }
+    const payload = { 
+      title: semesterForm.title.trim(), 
+      year: Number(semesterForm.year),
+      examDate: semesterForm.examDate || null,
+      status: semesterForm.status
+    }
     if (editSemester) {
       await dispatch(updateSemester({ semesterId: editSemester._id, data: payload }))
     } else {
@@ -114,7 +125,6 @@ export default function VUCourses() {
       name: course.name,
       totalLectures: course.totalLectures || 0,
       covered: course.covered || 0,
-      examDate: course.examDate ? course.examDate.slice(0, 10) : '',
       status: course.status || 'not-started',
       notes: course.notes || ''
     })
@@ -128,7 +138,6 @@ export default function VUCourses() {
       name: courseForm.name.trim(),
       totalLectures: Number(courseForm.totalLectures) || 0,
       covered: Number(courseForm.covered) || 0,
-      examDate: courseForm.examDate || null,
       status: courseForm.status,
       notes: courseForm.notes
     }
@@ -192,7 +201,35 @@ export default function VUCourses() {
           </div>
         ) : (
           semesters.map(semester => {
-            const { totalLectures, covered, progress, status, coursesCount } = getSemesterTotals(semester)
+            const { totalLectures, covered, progress, coursesCount } = getSemesterTotals(semester)
+            const dispStatus = semester.status || 'not-started'
+            let examAlert = null;
+            if (semester.examDate) {
+              const daysLeft = Math.ceil((new Date(semester.examDate) - new Date()) / (1000 * 60 * 60 * 24));
+              if (daysLeft >= 0) {
+                examAlert = (
+                  <div style={{
+                    color: '#c62828',
+                    fontWeight: 900,
+                    fontSize: 'clamp(18px, 4vw, 24px)',
+                    marginTop: 16,
+                    marginBottom: 8,
+                    padding: '12px 20px',
+                    backgroundColor: '#ffebee',
+                    border: '2px solid #ef5350',
+                    borderRadius: 12,
+                    display: 'inline-block',
+                    boxShadow: '0 4px 12px rgba(211, 47, 47, 0.2)',
+                    textTransform: 'uppercase',
+                    letterSpacing: '0.5px'
+                  }}>
+                    🚨 {daysLeft} Days are left in exams
+                  </div>
+                );
+              } else {
+                examAlert = <div style={{ color: 'var(--text-muted)', fontWeight: 600, fontSize: 13, marginTop: 8 }}>Exams have concluded</div>
+              }
+            }
             return (
               <div key={semester._id} className="card" style={{ padding: 20 }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', gap: 12, alignItems: 'center', flexWrap: 'wrap' }}>
@@ -208,7 +245,7 @@ export default function VUCourses() {
                         {coursesCount} courses • {covered}/{totalLectures} lectures
                       </div>
                     </div>
-                    <Badge type={status}>{formatStatus(status)}</Badge>
+                    <Badge type={dispStatus}>{formatStatus(dispStatus)}</Badge>
                   </div>
                   <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                     <div style={{ textAlign: 'right' }}>
@@ -219,6 +256,8 @@ export default function VUCourses() {
                     <button className="btn btn-danger" onClick={() => removeSemester(semester._id)} style={{ padding: '6px 8px', fontSize: 12 }}>🗑</button>
                   </div>
                 </div>
+
+                {examAlert}
 
                 <div style={{ marginTop: 12 }}>
                   <ProgressBar value={progress} showLabel />
@@ -245,7 +284,7 @@ export default function VUCourses() {
                             <div>
                               <div style={{ fontWeight: 600 }}>{course.name}</div>
                               <div style={{ fontSize: 12, color: 'var(--text-muted)', marginTop: 2 }}>
-                                {course.covered}/{course.totalLectures} lectures • Exam: {course.examDate ? new Date(course.examDate).toLocaleDateString('en-US') : 'TBD'}
+                                {course.covered}/{course.totalLectures} lectures
                               </div>
                               <div style={{ marginTop: 6, display: 'flex', gap: 6, flexWrap: 'wrap' }}>
                                 <Badge type={course.status}>{formatStatus(course.status)}</Badge>
@@ -292,6 +331,16 @@ export default function VUCourses() {
                 <label style={{ display: 'block', fontWeight: 600, fontSize: 13, marginBottom: 6 }}>Year</label>
                 <input type="number" className="input-field" value={semesterForm.year} onChange={e => setSemesterForm(p => ({ ...p, year: e.target.value }))} required />
               </div>
+              <div>
+                <label style={{ display: 'block', fontWeight: 600, fontSize: 13, marginBottom: 6 }}>Exam Date</label>
+                <input type="date" className="input-field" value={semesterForm.examDate} onChange={e => setSemesterForm(p => ({ ...p, examDate: e.target.value }))} />
+              </div>
+              <SelectField
+                label="Status"
+                value={semesterForm.status}
+                onChange={v => setSemesterForm(p => ({ ...p, status: v }))}
+                options={STATUS_OPTIONS.map(s => ({ value: s, label: formatStatus(s) }))}
+              />
             </div>
             <div style={{ display: 'flex', gap: 10, justifyContent: 'flex-end', marginTop: 20 }}>
               <button type="button" className="btn btn-secondary" onClick={() => setShowSemesterModal(false)}>Cancel</button>
@@ -316,10 +365,6 @@ export default function VUCourses() {
               <div>
                 <label style={{ display: 'block', fontWeight: 600, fontSize: 13, marginBottom: 6 }}>Covered</label>
                 <input type="number" className="input-field" value={courseForm.covered} onChange={e => setCourseForm(p => ({ ...p, covered: e.target.value }))} />
-              </div>
-              <div>
-                <label style={{ display: 'block', fontWeight: 600, fontSize: 13, marginBottom: 6 }}>Exam Date</label>
-                <input type="date" className="input-field" value={courseForm.examDate} onChange={e => setCourseForm(p => ({ ...p, examDate: e.target.value }))} />
               </div>
               <SelectField
                 label="Status"

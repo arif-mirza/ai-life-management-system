@@ -43,7 +43,8 @@ const QURAN_STATUS_STYLES = {
   done:    { background: '#e2f5ea', color: '#1a7a42', border: '1px solid #9dd6b0' }
 }
 
-const getTodayISO = () => new Date().toISOString().slice(0, 10)
+const toLocalISOString = (d) => new Date(d.getTime() - (d.getTimezoneOffset() * 60000)).toISOString().slice(0, 10);
+const getTodayISO = () => toLocalISOString(new Date());
 const getDaysInMonth = (y, m) => new Date(y, m + 1, 0).getDate()
 const getCompletedCount = (entries) => {
   let c = 0
@@ -237,7 +238,7 @@ export default function NamazTracker() {
                     <tr key={prayer.key}>
                       <td style={{ fontSize: 12, fontWeight: 700, padding: '4px 10px', position: 'sticky', left: 0, background: 'rgba(255,255,255,0.98)', zIndex: 1 }}>{prayer.label}</td>
                       {currentMonthDays.map(d => {
-                        const dk = d.toISOString().slice(0, 10)
+                        const dk = toLocalISOString(d)
                         const val = entriesByDate[dk]?.[prayer.key] || null
                         const s = val ? STATUS_COLORS[val] : { background: 'var(--surface-2)', color: 'var(--text-muted)' }
                         return (
@@ -259,7 +260,7 @@ export default function NamazTracker() {
                   <div style={{ fontWeight: 700, fontSize: 13, marginBottom: 8 }}>{prayer.icon} {prayer.label}</div>
                   <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7,minmax(0,1fr))', gap: 4 }}>
                     {currentMonthDays.map(d => {
-                      const dk = d.toISOString().slice(0, 10)
+                      const dk = toLocalISOString(d)
                       const val = entriesByDate[dk]?.[prayer.key] || null
                       const s = val ? STATUS_COLORS[val] : { background: 'var(--surface-2)', color: 'var(--text-muted)' }
                       return (
